@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"gopkg.in/dnaeon/go-vcr.v3/recorder"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -33,6 +34,19 @@ type bank struct {
 type stock struct {
 	ID   string
 	Name string
+}
+
+func mockrequest() *recorder.Recorder {
+	r, err := recorder.New("fixtures/integration")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// defer r.Stop() // Make sure recorder is stopped once done with it
+
+	if r.Mode() != recorder.ModeRecordOnce {
+		log.Fatal("Recorder should be in ModeRecordOnce")
+	}
+	return r
 }
 
 func main() {
@@ -102,11 +116,14 @@ func main() {
 	})
 
 	app.Get("/stock/:name/price", func(c *fiber.Ctx) error {
+		r := mockrequest()
+		req := http.Client{Transport: r}
+		defer r.Stop() // Make sure recorder is stopped once done with it
 		//Example of ThirdParty API request
 		//https://api.hgbrasil.com/finance/stock_price?key=c34b53c1&symbol=mxrf11
 		stockName := c.Params("name")
 		url := fmt.Sprintf("https://api.hgbrasil.com/finance/stock_price?symbol=%s&key=%s", stockName, envs["HG_API_KEY"])
-		resp, err := http.Get(url)
+		resp, err := req.Get(url)
 		if err != nil {
 			return c.SendString("Error: Try again later")
 		}
@@ -115,11 +132,14 @@ func main() {
 	})
 
 	app.Get("/stock/:name/history", func(c *fiber.Ctx) error {
+		r := mockrequest()
+		req := http.Client{Transport: r}
+		defer r.Stop() // Make sure recorder is stopped once done with it
 		//Example of ThirdParty API request
 		//https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=IBM&outputsize=full&apikey=FIIX3DBF99Y439X5
 		stockName := c.Params("name")
 		url := fmt.Sprintf("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=%s&outputsize=full&apikey=%s", stockName, envs["AP_API_KEY"])
-		resp, err := http.Get(url)
+		resp, err := req.Get(url)
 		if err != nil {
 			return c.SendString("Error: Try again later")
 		}

@@ -5,6 +5,11 @@ go 1.18
 require gorm.io/gorm v1.24.1
 
 require (
+	gopkg.in/dnaeon/go-vcr.v3 v3.1.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/gofiber/fiber/v2 v2.39.0
 	github.com/klauspost/compress v1.15.12 // indirect
