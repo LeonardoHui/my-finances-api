@@ -7,34 +7,12 @@ import (
 	"net/http"
 	"os"
 
+	"my-finances-api/src/database"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"gopkg.in/dnaeon/go-vcr.v3/recorder"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/schema"
 )
-
-type dbConfigs struct {
-	host     string
-	user     string
-	password string
-	name     string
-	port     string
-	sslmode  string
-	timeZone string
-}
-
-// The struct Properties must be uppercase, so that gorm can access it
-type bank struct {
-	ID   string
-	Name string
-}
-
-type stock struct {
-	ID   string
-	Name string
-}
 
 func mockrequest() *recorder.Recorder {
 	r, err := recorder.New("fixtures/integration")
@@ -53,57 +31,35 @@ func main() {
 	fmt.Println("STARTING THE PROGRAM")
 
 	envFile := os.Args[1]
-	envs, err := godotenv.Read(envFile)
+	envs, _ := godotenv.Read(envFile)
 
-	bankConfigDB := dbConfigs{
-		host:     envs["BANK_DB_URL"],
-		user:     envs["BANK_DB_USER"],
-		password: envs["BANK_DB_PWD"],
-		name:     envs["BANK_DB_NAME"],
-		port:     envs["BANK_DB_PORT"],
-		sslmode:  envs["BANK_DB_SSL"],
-		timeZone: envs["BANK_DB_TZ"],
+	bankConfigDB := database.DbConfigs{
+		Host:     envs["BANK_DB_URL"],
+		User:     envs["BANK_DB_USER"],
+		Password: envs["BANK_DB_PWD"],
+		Name:     envs["BANK_DB_NAME"],
+		Port:     envs["BANK_DB_PORT"],
+		SslMode:  envs["BANK_DB_SSL"],
+		TimeZone: envs["BANK_DB_TZ"],
 	}
 
-	stockConfigDB := dbConfigs{
-		host:     envs["STOCK_DB_URL"],
-		user:     envs["STOCK_DB_USER"],
-		password: envs["STOCK_DB_PWD"],
-		name:     envs["STOCK_DB_NAME"],
-		port:     envs["STOCK_DB_PORT"],
-		sslmode:  envs["STOCK_DB_SSL"],
-		timeZone: envs["STOCK_DB_TZ"],
+	stockConfigDB := database.DbConfigs{
+		Host:     envs["STOCK_DB_URL"],
+		User:     envs["STOCK_DB_USER"],
+		Password: envs["STOCK_DB_PWD"],
+		Name:     envs["STOCK_DB_NAME"],
+		Port:     envs["STOCK_DB_PORT"],
+		SslMode:  envs["STOCK_DB_SSL"],
+		TimeZone: envs["STOCK_DB_TZ"],
 	}
 
-	// Example: dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
-	dsn1 := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s",
-		bankConfigDB.host, bankConfigDB.user, bankConfigDB.password, bankConfigDB.name, bankConfigDB.port,
-	)
-
-	dsn2 := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s",
-		stockConfigDB.host, stockConfigDB.user, stockConfigDB.password, stockConfigDB.name, stockConfigDB.port,
-	)
-
-	gormConf := gorm.Config{
-		NamingStrategy: schema.NamingStrategy{SingularTable: true},
-	}
-
-	bankDB, err := gorm.Open(postgres.Open(dsn1), &gormConf)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	stockdb, err := gorm.Open(postgres.Open(dsn2), &gormConf)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	bankDB := bankConfigDB.Open()
+	stockdb := stockConfigDB.Open()
 
 	app := fiber.New()
 
-	var bank bank
-	var stock stock
+	var bank database.Bank
+	var stock database.Stock
 
 	app.Get("/stock_db", func(c *fiber.Ctx) error {
 		stockdb.First(&stock)
