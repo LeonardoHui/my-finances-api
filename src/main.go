@@ -1,25 +1,79 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
+	"my-finances-api/src/auth"
 	"my-finances-api/src/database"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"gopkg.in/dnaeon/go-vcr.v3/recorder"
+	"gorm.io/gorm"
 )
+
+var (
+	BankDB  *gorm.DB
+	Stockdb *gorm.DB
+)
+
+type TokenRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func GenerateToken(context *fiber.Ctx) error {
+	var request TokenRequest
+	var user database.User
+
+	if err := context.BodyParser(&request); err != nil {
+		log.Println("Fail to parse boday", err)
+		return err
+	}
+
+	if result := BankDB.Where("email = ?", request.Email).First(&user); result.Error != nil {
+		log.Println("Invalid Email", result.Error)
+		return result.Error
+	}
+
+	if credentialError := user.CheckPassword(request.Password); credentialError != nil {
+		log.Println("Invalid Password", credentialError)
+		return credentialError
+	}
+
+	tokenString, err := auth.GenerateJWT(user.Email, user.Username)
+	if err != nil {
+		return err
+	}
+
+	return context.JSON(tokenString)
+}
+
+func Auth(context *fiber.Ctx) error {
+
+	tokenString := context.Get("Authorization", "0")
+	if tokenString == "0" {
+		log.Println("Não autorizado - Missing authorization")
+		return errors.New("Não autorizado - Missing authorization")
+	}
+	err := auth.ValidateToken(tokenString)
+	if err != nil {
+		log.Println("Invalid token:", err)
+		return err
+	}
+	return context.Next()
+}
 
 func mockrequest() *recorder.Recorder {
 	r, err := recorder.New("fixtures/integration")
 	if err != nil {
 		log.Fatal(err)
 	}
-	// defer r.Stop() // Make sure recorder is stopped once done with it
 
 	if r.Mode() != recorder.ModeRecordOnce {
 		log.Fatal("Recorder should be in ModeRecordOnce")
@@ -53,25 +107,55 @@ func main() {
 		TimeZone: envs["STOCK_DB_TZ"],
 	}
 
-	bankDB := bankConfigDB.Open()
-	stockdb := stockConfigDB.Open()
+	BankDB = bankConfigDB.Open()
+	Stockdb = stockConfigDB.Open()
+
+	BankDB.AutoMigrate(database.Bank{})
+	BankDB.AutoMigrate(database.Statement{})
+	BankDB.AutoMigrate(database.User{})
+	Stockdb.AutoMigrate(database.Bank{})
 
 	app := fiber.New()
 
 	var bank database.Bank
 	var stock database.Stock
 
-	app.Get("/stock_db", func(c *fiber.Ctx) error {
-		stockdb.First(&stock)
+	app.Post("/new_user", func(c *fiber.Ctx) error {
+		var user database.User
+		if err := c.BodyParser(&user); err != nil {
+			log.Println("Error parsing body", err)
+			return err
+		}
+		if err := user.HashPassword(user.Password); err != nil {
+			log.Println("Error hashing password", err)
+			return err
+		}
+		record := BankDB.Create(&user)
+		if record.Error != nil {
+			log.Println("Error saving DB", record.Error)
+			return record.Error
+		}
+		if err := c.JSON(user); err != nil {
+			log.Println("Error returning body", err)
+			return err
+		}
+		return nil
+	})
+
+	app.Post("/token", GenerateToken)
+
+	route := app.Group("/secure", Auth)
+	route.Get("/stock_db", func(c *fiber.Ctx) error {
+		Stockdb.First(&stock)
 		return c.SendString(fmt.Sprintf("%v", stock))
 	})
 
-	app.Get("/bank_db", func(c *fiber.Ctx) error {
-		bankDB.First(&bank)
+	route.Get("/bank_db", func(c *fiber.Ctx) error {
+		BankDB.First(&bank)
 		return c.SendString(fmt.Sprintf("%v", bank))
 	})
 
-	app.Get("/stock/:name/price", func(c *fiber.Ctx) error {
+	route.Get("/stock/:name/price", func(c *fiber.Ctx) error {
 		r := mockrequest()
 		req := http.Client{Transport: r}
 		defer r.Stop() // Make sure recorder is stopped once done with it
@@ -87,7 +171,7 @@ func main() {
 		return c.SendString(string(respBody))
 	})
 
-	app.Get("/stock/:name/history", func(c *fiber.Ctx) error {
+	route.Get("/stock/:name/history", func(c *fiber.Ctx) error {
 		r := mockrequest()
 		req := http.Client{Transport: r}
 		defer r.Stop() // Make sure recorder is stopped once done with it

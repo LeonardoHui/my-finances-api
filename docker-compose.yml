@@ -10,8 +10,8 @@ services:
       - POSTGRES_DB=bank
     ports:
       - 5432:5432
-    volumes:
-      - ./initdbs/bank_init.sql:/docker-entrypoint-initdb.d/bank_init.sql
+    # volumes:
+    #   - ./initdbs/bank_init.sql:/docker-entrypoint-initdb.d/bank_init.sql
 
   stockDB:
     image: postgres:latest
@@ -22,5 +22,5 @@ services:
       - POSTGRES_DB=stock
     ports:
       - 5434:5432
-    volumes:
-      - ./initdbs/stock_init.sql:/docker-entrypoint-initdb.d/stock_init.sql
+    # volumes:
+    #   - ./initdbs/stock_init.sql:/docker-entrypoint-initdb.d/stock_init.sql
