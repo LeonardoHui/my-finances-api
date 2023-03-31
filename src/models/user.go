@@ -1,4 +1,4 @@
-package database
+package models
 
 import (
 	"golang.org/x/crypto/bcrypt"

@@ -8,6 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
+var BankDB *gorm.DB
+var Stockdb *gorm.DB
+
 type DbConfigs struct {
 	Host     string
 	User     string
