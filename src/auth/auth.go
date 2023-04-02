@@ -2,6 +2,8 @@ package auth
 
 import (
 	"errors"
+	"my-finances-api/src/database"
+	"my-finances-api/src/models"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -27,7 +29,8 @@ func GenerateJWT(email string, username string) (tokenString string, err error) 
 	return
 }
 
-func ValidateToken(signedToken string) (err error) {
+func ValidateToken(signedToken string) (user *models.User, err error) {
+
 	token, err := jwt.ParseWithClaims(
 		signedToken,
 		&JWTClaim{},
@@ -47,5 +50,16 @@ func ValidateToken(signedToken string) (err error) {
 		err = errors.New("Token expired")
 		return
 	}
+
+	if result := database.BankDB.Where("email = ?", claims.Email).First(&user); result.Error != nil {
+		err = errors.New("Couldn't validate token")
+		return nil, err
+	}
+
+	if user.Username != claims.Username {
+		err = errors.New("Couldn't validate token")
+		return nil, err
+	}
+
 	return
 }

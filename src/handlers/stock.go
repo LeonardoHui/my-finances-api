@@ -11,6 +11,10 @@ import (
 
 func GetStocks(c *fiber.Ctx) error {
 	var stock models.Stock
+
+	user := (c.Locals("user"))
+	fmt.Printf("LOCALS %v", user)
+
 	database.Stockdb.First(&stock)
 	return c.SendString(fmt.Sprintf("%v", stock))
 }

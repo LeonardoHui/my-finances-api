@@ -49,10 +49,11 @@ func AuthenticateToken(context *fiber.Ctx) error {
 		log.Println("Não autorizado - Missing authorization")
 		return errors.New("Não autorizado - Missing authorization")
 	}
-	err := auth.ValidateToken(tokenString)
+	user, err := auth.ValidateToken(tokenString)
 	if err != nil {
 		log.Println("Invalid token:", err)
 		return err
 	}
+	context.Locals("user", user)
 	return context.Next()
 }
