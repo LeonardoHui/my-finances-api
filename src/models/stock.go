@@ -1,6 +1,8 @@
 package models
 
+import "gorm.io/gorm"
+
 type Stock struct {
-	ID   string
+	gorm.Model
 	Name string
 }

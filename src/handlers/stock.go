@@ -12,9 +12,14 @@ import (
 func GetStocks(c *fiber.Ctx) error {
 	var stock models.Stock
 
-	user := (c.Locals("user"))
-	fmt.Printf("LOCALS %v", user)
-
 	database.BankDB.First(&stock)
 	return c.SendString(fmt.Sprintf("%v", stock))
+}
+
+func GetUserInvestments(c *fiber.Ctx) error {
+	var user *models.User
+	user = c.Locals("user").(*models.User)
+
+	database.BankDB.Preload("Investments").Find(&user)
+	return c.JSON(user.Statements)
 }

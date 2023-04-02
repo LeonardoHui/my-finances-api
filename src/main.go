@@ -56,8 +56,8 @@ func main() {
 	app.Post("/login", handlers.GenerateToken)
 
 	// Authenticated endpoints
-	app.Get("/investments", handlers.AuthenticateToken, handlers.GetStocks)
-	app.Get("/statements", handlers.AuthenticateToken, handlers.GetBank)
+	app.Get("/statements", handlers.AuthenticateToken, handlers.GetUserStatements)
+	app.Get("/investments", handlers.AuthenticateToken, handlers.GetUserInvestments)
 
 	app.Listen(":8000")
 }

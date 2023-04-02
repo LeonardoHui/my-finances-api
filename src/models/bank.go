@@ -1,15 +1,8 @@
 package models
 
-type Bank struct {
-	ID   string
-	Name string
-}
+import "gorm.io/gorm"
 
-type Statement struct {
-	ID          string
-	Bank        string
-	Amount      int64
-	Description string
-	Asset       string
-	Qtd         int16
+type Bank struct {
+	gorm.Model
+	Name string
 }
