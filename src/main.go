@@ -39,23 +39,12 @@ func main() {
 		TimeZone: configs.Envs["BANK_DB_TZ"],
 	}
 
-	stockConfigDB := database.DbConfigs{
-		Host:     configs.Envs["STOCK_DB_URL"],
-		User:     configs.Envs["STOCK_DB_USER"],
-		Password: configs.Envs["STOCK_DB_PWD"],
-		Name:     configs.Envs["STOCK_DB_NAME"],
-		Port:     configs.Envs["STOCK_DB_PORT"],
-		SslMode:  configs.Envs["STOCK_DB_SSL"],
-		TimeZone: configs.Envs["STOCK_DB_TZ"],
-	}
-
 	database.BankDB = bankConfigDB.Open()
-	database.Stockdb = stockConfigDB.Open()
 
 	database.BankDB.AutoMigrate(models.Bank{})
 	database.BankDB.AutoMigrate(models.Statement{})
 	database.BankDB.AutoMigrate(models.User{})
-	database.Stockdb.AutoMigrate(models.Stock{})
+	database.BankDB.AutoMigrate(models.Stock{})
 
 	app := fiber.New()
 
@@ -66,13 +55,9 @@ func main() {
 	app.Post("/register", handlers.CreatNewUser)
 	app.Post("/login", handlers.GenerateToken)
 
-	route := app.Group("", handlers.AuthenticateToken)
-	{
-		route.Get("/investments", handlers.GetStocks)
-		route.Get("/statements", handlers.GetBank)
-		route.Get("/stock/:name/price", handlers.GetStockPrice)
-		route.Get("/stock/:name/history", handlers.GetStockHistory)
-	}
+	// Authenticated endpoints
+	app.Get("/investments", handlers.AuthenticateToken, handlers.GetStocks)
+	app.Get("/statements", handlers.AuthenticateToken, handlers.GetBank)
 
 	app.Listen(":8000")
 }

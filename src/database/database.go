@@ -9,7 +9,6 @@ import (
 )
 
 var BankDB *gorm.DB
-var Stockdb *gorm.DB
 
 type DbConfigs struct {
 	Host     string

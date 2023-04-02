@@ -15,6 +15,6 @@ func GetStocks(c *fiber.Ctx) error {
 	user := (c.Locals("user"))
 	fmt.Printf("LOCALS %v", user)
 
-	database.Stockdb.First(&stock)
+	database.BankDB.First(&stock)
 	return c.SendString(fmt.Sprintf("%v", stock))
 }
