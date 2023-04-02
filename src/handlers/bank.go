@@ -15,10 +15,21 @@ func GetBank(c *fiber.Ctx) error {
 	return c.SendString(fmt.Sprintf("%v", bank))
 }
 
+type UserStatements struct {
+	Statements []models.Statement   `json:"statements"`
+	Balance    []models.BankAccount `json:"balance"`
+}
+
 func GetUserStatements(c *fiber.Ctx) error {
 	var user *models.User
 	user = c.Locals("user").(*models.User)
 
 	database.BankDB.Preload("Statements").Find(&user)
-	return c.JSON(user.Statements)
+	database.BankDB.Preload("BankAccounts").Find(&user)
+	return c.JSON(
+		UserStatements{
+			Statements: user.Statements,
+			Balance:    user.BankAccounts,
+		},
+	)
 }

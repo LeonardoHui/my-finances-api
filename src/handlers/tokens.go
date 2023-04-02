@@ -15,6 +15,10 @@ type TokenRequest struct {
 	Password string `json:"password"`
 }
 
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
 func GenerateToken(context *fiber.Ctx) error {
 	var request TokenRequest
 	var user models.User
@@ -39,7 +43,7 @@ func GenerateToken(context *fiber.Ctx) error {
 		return err
 	}
 
-	return context.JSON(tokenString)
+	return context.JSON(TokenResponse{Token: tokenString})
 }
 
 func AuthenticateToken(context *fiber.Ctx) error {

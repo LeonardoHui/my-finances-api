@@ -23,6 +23,7 @@ func CreatNewUser(c *fiber.Ctx) error {
 		log.Println("Error saving DB", record.Error)
 		return record.Error
 	}
+
 	if err := c.JSON(user); err != nil {
 		log.Println("Error returning body", err)
 		return err

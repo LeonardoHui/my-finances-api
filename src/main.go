@@ -41,10 +41,13 @@ func main() {
 
 	database.BankDB = bankConfigDB.Open()
 
-	database.BankDB.AutoMigrate(models.Bank{})
-	database.BankDB.AutoMigrate(models.Statement{})
 	database.BankDB.AutoMigrate(models.User{})
+	database.BankDB.AutoMigrate(models.Bank{})
+	database.BankDB.AutoMigrate(models.BankAccount{})
+	database.BankDB.AutoMigrate(models.Statement{})
 	database.BankDB.AutoMigrate(models.Stock{})
+	database.BankDB.AutoMigrate(models.Investiment{})
+	database.BankDB.AutoMigrate(models.InvestimentEvent{})
 
 	app := fiber.New()
 
