@@ -10,6 +10,7 @@ import (
 	"my-finances-api/src/models"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gopkg.in/dnaeon/go-vcr.v3/recorder"
 )
 
@@ -54,20 +55,24 @@ func main() {
 	database.BankDB.AutoMigrate(models.Bank{})
 	database.BankDB.AutoMigrate(models.Statement{})
 	database.BankDB.AutoMigrate(models.User{})
-	database.Stockdb.AutoMigrate(models.Bank{})
+	database.Stockdb.AutoMigrate(models.Stock{})
 
 	app := fiber.New()
 
-	app.Post("/new_user", handlers.CreatNewUser)
-	app.Post("/token", handlers.GenerateToken)
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000",
+	}))
 
-	route := app.Group("/secure", handlers.AuthenticateToken)
+	app.Post("/register", handlers.CreatNewUser)
+	app.Post("/login", handlers.GenerateToken)
+
+	route := app.Group("", handlers.AuthenticateToken)
 	{
-		route.Get("/stock_db", handlers.GetStocks)
-		route.Get("/bank_db", handlers.GetBank)
+		route.Get("/investments", handlers.GetStocks)
+		route.Get("/statements", handlers.GetBank)
 		route.Get("/stock/:name/price", handlers.GetStockPrice)
 		route.Get("/stock/:name/history", handlers.GetStockHistory)
 	}
 
-	app.Listen(":3000")
+	app.Listen(":8000")
 }
