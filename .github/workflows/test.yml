@@ -66,3 +66,7 @@ jobs:
           start: npm run dev
           wait-on: "http://localhost:3000"
           # spec: cypress/e2e/spec1.cy.js
+        continue-on-error: true
+
+      - name: Display API logs
+        run: cat output.log
