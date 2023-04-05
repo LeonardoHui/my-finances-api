@@ -37,7 +37,7 @@ jobs:
           echo "BANK_DB_NAME=${DB_NAME}" >> .env.test
 
       - name: Run go project
-        run: go run ./src/main.go .env.test > output.log 2>&1 &
+        run: go run ./src/main.go .env.test & sleep 30
 
       - name: Checkout React Project
         uses: actions/checkout@v3
