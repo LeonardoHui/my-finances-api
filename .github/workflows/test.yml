@@ -1,0 +1,71 @@
+name: Go Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        uses: docker/compose-cli-action@v0.7.3
+
+      - name: Start Docker Compose
+        run: docker-compose up -d
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.18"
+
+      - name: Generate .env file
+        env:
+          DB_URL: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PWD: root
+          DB_NAME: bank
+        run: |
+          echo "BANK_DB_URL=${DB_UR}" > .env.test
+          echo "BANK_DB_PORT=${DB_PORT}" >> .env.test
+          echo "BANK_DB_USER=${DB_USER}" >> .env.test
+          echo "BANK_DB_PWD=${DB_PWD}" >> .env.test
+          echo "BANK_DB_NAME=${DB_NAME}" >> .env.test
+
+      - name: Build
+        run: go run .\src\main.go .env.test
+
+      - name: Checkout React Project
+        uses: actions/checkout@v3
+        with:
+          repository: LeonardoHui/my-finances-app
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Generate .env file
+        run: |
+          echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v5
+        with:
+          browser: chrome
+          headless: true
+          start: npm run dev
+          wait-on: "http://localhost:3000"
+          # spec: cypress/e2e/spec1.cy.js
