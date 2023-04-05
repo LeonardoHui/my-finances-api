@@ -37,7 +37,9 @@ jobs:
           echo "BANK_DB_NAME=${DB_NAME}" >> .env.test
 
       - name: Run go project
-        run: go run ./src/main.go .env.test & sleep 30
+        run: |
+          ( go run ./src/main.go .env.test 2>&1 | tee $GITHUB_WORKSPACE/output.log ) &
+          sleep 15
 
       - name: Checkout React Project
         uses: actions/checkout@v3
@@ -69,4 +71,5 @@ jobs:
         continue-on-error: true
 
       - name: Display API logs
-        run: cat output.log
+        run: |
+          cat  $GITHUB_WORKSPACE/output.log
