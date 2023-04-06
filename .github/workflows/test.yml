@@ -53,11 +53,11 @@ jobs:
           echo "${{ secrets.TOKEN }}" > .env
 
       - name: Run selector
-        id: selector_step
+        id: save_output
         run: |
           go build
           chosen=$(./tests-selector .env ${{ github.event.inputs.my_input }} 2>&1)
-          echo $chosen
+          echo "::set-output name=my_output::$chosen"
 
       - name: Checkout React Project
         uses: actions/checkout@v3
@@ -87,7 +87,7 @@ jobs:
 
       - name: Run Cypress tests
         run: |
-          npx cypress run  --spec "cypress/e2e/${{ steps.selector_step.outputs.chosen }}.cy.js"
+          npx cypress run  --spec "cypress/e2e/${{ steps.save_output.outputs.my_output }}.cy.js"
 
       - name: Check the login endpoint
         run: |
