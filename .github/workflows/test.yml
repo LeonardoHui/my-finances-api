@@ -80,15 +80,12 @@ jobs:
 
       - name: Run Cypress tests
         uses: cypress-io/github-action@v5
-        env:
-          CHOSEN: ${{ steps.selector_step.outputs.chosen }}
         with:
-          browser: chrome
-          headless: true
+          runTests: false
           start: npm run dev
           wait-on: "http://localhost:3000"
-          spec: cypress/e2e/${{ env.CHOSEN }}.cy.js
-        continue-on-error: true
+        run: |
+          npx cypress run  --spec "cypress/e2e/${{ steps.selector_step.outputs.chosen }}.cy.js"
 
       - name: Check the login endpoint
         run: |
