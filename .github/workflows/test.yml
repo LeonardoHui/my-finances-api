@@ -68,3 +68,8 @@ jobs:
           start: npm run dev
           wait-on: "http://localhost:3000"
           # spec: cypress/e2e/spec1.cy.js
+
+      - name: Generate .env file
+        run: |
+          response=$(curl -X POST http://localhost:8000/login -H "Content-Type: application/json" -d '{"email": "tester_one@mail.com", "password": "1111"}')
+          echo "$response"
