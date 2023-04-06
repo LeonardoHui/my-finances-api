@@ -78,12 +78,14 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
 
-      - name: Run Cypress tests
+      - name: Install Cypress tests
         uses: cypress-io/github-action@v5
         with:
           runTests: false
           start: npm run dev
           wait-on: "http://localhost:3000"
+
+      - name: Run Cypress tests
         run: |
           npx cypress run  --spec "cypress/e2e/${{ steps.selector_step.outputs.chosen }}.cy.js"
 
