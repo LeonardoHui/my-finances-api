@@ -53,11 +53,11 @@ jobs:
           echo "${{ secrets.TOKEN }}" > .env
 
       - name: Run selector
+        id: selector_step
         run: |
           go build
           chosen=$(./tests-selector .env ${{ github.event.inputs.my_input }} 2>&1)
           echo $chosen
-        id: selector_step
 
       - name: Checkout React Project
         uses: actions/checkout@v3
