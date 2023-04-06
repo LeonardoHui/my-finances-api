@@ -38,7 +38,7 @@ jobs:
 
       - name: Run go project
         run: |
-          ( go run ./src/main.go .env.test 2>&1 | tee $GITHUB_WORKSPACE/output.log ) &
+          go run ./src/main.go .env.test &
           sleep 15
 
       - name: Checkout React Project
@@ -68,8 +68,3 @@ jobs:
           start: npm run dev
           wait-on: "http://localhost:3000"
           # spec: cypress/e2e/spec1.cy.js
-        continue-on-error: true
-
-      - name: Display API logs
-        run: |
-          cat  $GITHUB_WORKSPACE/output.log

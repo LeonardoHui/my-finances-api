@@ -49,6 +49,10 @@ func main() {
 	database.BankDB.AutoMigrate(models.Investiment{})
 	database.BankDB.AutoMigrate(models.InvestimentEvent{})
 
+	// For teste only
+	handlers.InternalCreateNewUser()
+	//
+
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
