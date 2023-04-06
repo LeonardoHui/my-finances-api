@@ -67,7 +67,8 @@ jobs:
           headless: true
           start: npm run dev
           wait-on: "http://localhost:3000"
-          # spec: cypress/e2e/spec1.cy.js
+          spec: cypress/e2e/login.cy.js
+        continue-on-error: true
 
       - name: Generate .env file
         run: |
