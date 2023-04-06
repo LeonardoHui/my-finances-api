@@ -1,10 +1,11 @@
 name: Test
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      my_input:
+        description: "An example input"
+        required: true
 
 jobs:
   Test:
@@ -44,6 +45,22 @@ jobs:
       - name: Checkout React Project
         uses: actions/checkout@v3
         with:
+          repository: LeonardoHui/tests-selector
+          ref: main
+
+      - name: Generate .env for test selector
+        run: |
+          echo "${{ secrets.TOKEN }}" > .env
+
+      - name: Run selector
+        run: |
+          chosen=$(go run main.go .env ${{ github.event.inputs.my_input }} 2>&1)
+          echo $chosen
+        id: selector_step
+
+      - name: Checkout React Project
+        uses: actions/checkout@v3
+        with:
           repository: LeonardoHui/my-finances-app
           ref: main
 
@@ -56,7 +73,7 @@ jobs:
         run: |
           npm install
 
-      - name: Generate .env file
+      - name: Generate .env file for React app
         run: |
           echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
 
@@ -67,10 +84,10 @@ jobs:
           headless: true
           start: npm run dev
           wait-on: "http://localhost:3000"
-          spec: cypress/e2e/login.cy.js
+          spec: cypress/e2e/${{ steps.selector_step.outputs.chosen }}.cy.js
         continue-on-error: true
 
-      - name: Generate .env file
+      - name: Check the login endpoint
         run: |
           response=$(curl -X POST http://localhost:8000/login -H "Content-Type: application/json" -d '{"email": "tester_one@mail.com", "password": "1111"}')
           echo "$response"
