@@ -13,21 +13,21 @@ func CreatNewUser(c *fiber.Ctx) error {
 	var user models.User
 	if err := c.BodyParser(&user); err != nil {
 		log.Println("Error parsing body", err)
-		return err
+		return ERROR_INVALID_PAYLOAD
 	}
 	if err := user.HashPassword(user.Password); err != nil {
 		log.Println("Error hashing password", err)
-		return err
+		return ERROR_CREATING_USER
 	}
 	record := database.BankDB.Create(&user)
 	if record.Error != nil {
 		log.Println("Error saving DB", record.Error)
-		return record.Error
+		return ERROR_CREATING_USER
 	}
 
 	if err := c.JSON(user); err != nil {
 		log.Println("Error returning body", err)
-		return err
+		return ERROR_CREATING_USER
 	}
 	return nil
 }
@@ -36,20 +36,21 @@ func CreatNewUserAndLogin(c *fiber.Ctx) error {
 	var user models.User
 	if err := c.BodyParser(&user); err != nil {
 		log.Println("Error parsing body", err)
-		return err
+		return ERROR_INVALID_PAYLOAD
 	}
 
 	if err := CreatNewUser(c); err != nil {
 		log.Println("Error Creating New User", err)
-		return err
+		return ERROR_CREATING_USER
 	}
 
 	tokenString, err := auth.GenerateJWT(user.Email, user.Username)
 	if err != nil {
-		return err
+		log.Println("Error generating JWT", err)
+		return ERROR_GENERATING_JWT
 	}
 
-	return c.JSON(TokenResponse{Token: tokenString})
+	return c.Status(fiber.StatusCreated).JSON(TokenResponse{Token: tokenString})
 }
 
 // For teste only

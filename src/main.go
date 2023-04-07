@@ -52,7 +52,11 @@ func main() {
 	// For teste only
 	handlers.InternalCreateNewUser()
 
-	app := fiber.New()
+	config := fiber.Config{
+		ErrorHandler: handlers.ResponseWhenError,
+	}
+
+	app := fiber.New(config)
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "http://localhost:3000",
