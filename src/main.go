@@ -58,7 +58,7 @@ func main() {
 		AllowOrigins: "http://localhost:3000",
 	}))
 
-	app.Post("/register", handlers.CreatNewUser)
+	app.Post("/register", handlers.CreatNewUserAndLogin)
 	app.Post("/login", handlers.GenerateToken)
 
 	// Authenticated endpoints

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"my-finances-api/src/auth"
 	"my-finances-api/src/database"
 	"my-finances-api/src/models"
 
@@ -29,6 +30,26 @@ func CreatNewUser(c *fiber.Ctx) error {
 		return err
 	}
 	return nil
+}
+
+func CreatNewUserAndLogin(c *fiber.Ctx) error {
+	var user models.User
+	if err := c.BodyParser(&user); err != nil {
+		log.Println("Error parsing body", err)
+		return err
+	}
+
+	if err := CreatNewUser(c); err != nil {
+		log.Println("Error Creating New User", err)
+		return err
+	}
+
+	tokenString, err := auth.GenerateJWT(user.Email, user.Username)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(TokenResponse{Token: tokenString})
 }
 
 // For teste only
