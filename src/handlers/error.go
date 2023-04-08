@@ -23,6 +23,7 @@ func ResponseWhenError(ctx *fiber.Ctx, err error) error {
 		err = ctx.Status(e.Code).JSON(e)
 	}
 
+	// Return a generic error in case a fiber.Error is not set
 	if err != nil {
 		return ctx.
 			Status(fiber.StatusInternalServerError).

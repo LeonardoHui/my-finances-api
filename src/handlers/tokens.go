@@ -18,11 +18,11 @@ type TokenResponse struct {
 	Token string `json:"token"`
 }
 
-func GenerateToken(context *fiber.Ctx) error {
+func GenerateToken(ctx *fiber.Ctx) error {
 	var request TokenRequest
 	var user models.User
 
-	if err := context.BodyParser(&request); err != nil {
+	if err := ctx.BodyParser(&request); err != nil {
 		log.Println("Fail to parse body", err)
 		return ERROR_INVALID_PAYLOAD
 	}
@@ -43,12 +43,12 @@ func GenerateToken(context *fiber.Ctx) error {
 		return ERROR_GENERATING_JWT
 	}
 
-	return context.JSON(TokenResponse{Token: tokenString})
+	return ctx.JSON(TokenResponse{Token: tokenString})
 }
 
-func AuthenticateToken(context *fiber.Ctx) error {
+func AuthenticateToken(ctx *fiber.Ctx) error {
 
-	tokenString := context.Get("Authorization", "0")
+	tokenString := ctx.Get("Authorization", "0")
 	if tokenString == "0" {
 		log.Println("Missing authorization")
 		return ERROR_NOT_AUTHORIZED
@@ -58,6 +58,6 @@ func AuthenticateToken(context *fiber.Ctx) error {
 		log.Println("Invalid token:", err)
 		return ERROR_NOT_AUTHORIZED
 	}
-	context.Locals("user", user)
-	return context.Next()
+	ctx.Locals("user", user)
+	return ctx.Next()
 }

@@ -8,11 +8,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetBank(c *fiber.Ctx) error {
+func GetBank(ctx *fiber.Ctx) error {
 	var bank models.Bank
 
 	database.BankDB.First(&bank)
-	return c.SendString(fmt.Sprintf("%v", bank))
+	return ctx.SendString(fmt.Sprintf("%v", bank))
 }
 
 type UserStatements struct {
@@ -20,13 +20,13 @@ type UserStatements struct {
 	Balance    []models.BankAccount `json:"balance"`
 }
 
-func GetUserStatements(c *fiber.Ctx) error {
+func GetUserStatements(ctx *fiber.Ctx) error {
 	var user *models.User
-	user = c.Locals("user").(*models.User)
+	user = ctx.Locals("user").(*models.User)
 
 	database.BankDB.Preload("Statements").Find(&user)
 	database.BankDB.Preload("BankAccounts").Find(&user)
-	return c.JSON(
+	return ctx.JSON(
 		UserStatements{
 			Statements: user.Statements,
 			Balance:    user.BankAccounts,

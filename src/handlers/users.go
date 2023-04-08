@@ -9,9 +9,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func CreatNewUser(c *fiber.Ctx) error {
+func CreatNewUser(ctx *fiber.Ctx) error {
 	var user models.User
-	if err := c.BodyParser(&user); err != nil {
+	if err := ctx.BodyParser(&user); err != nil {
 		log.Println("Error parsing body", err)
 		return ERROR_INVALID_PAYLOAD
 	}
@@ -25,21 +25,21 @@ func CreatNewUser(c *fiber.Ctx) error {
 		return ERROR_CREATING_USER
 	}
 
-	if err := c.JSON(user); err != nil {
+	if err := ctx.JSON(user); err != nil {
 		log.Println("Error returning body", err)
 		return ERROR_CREATING_USER
 	}
 	return nil
 }
 
-func CreatNewUserAndLogin(c *fiber.Ctx) error {
+func CreatNewUserAndLogin(ctx *fiber.Ctx) error {
 	var user models.User
-	if err := c.BodyParser(&user); err != nil {
+	if err := ctx.BodyParser(&user); err != nil {
 		log.Println("Error parsing body", err)
 		return ERROR_INVALID_PAYLOAD
 	}
 
-	if err := CreatNewUser(c); err != nil {
+	if err := CreatNewUser(ctx); err != nil {
 		log.Println("Error Creating New User", err)
 		return ERROR_CREATING_USER
 	}
@@ -50,7 +50,7 @@ func CreatNewUserAndLogin(c *fiber.Ctx) error {
 		return ERROR_GENERATING_JWT
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(TokenResponse{Token: tokenString})
+	return ctx.Status(fiber.StatusCreated).JSON(TokenResponse{Token: tokenString})
 }
 
 // For teste only
