@@ -68,6 +68,7 @@ func main() {
 	// Authenticated endpoints
 	app.Get("/statements", handlers.AuthenticateToken, handlers.GetUserStatements)
 	app.Get("/investments", handlers.AuthenticateToken, handlers.GetUserInvestments)
+	app.Post("/bank/account", handlers.AuthenticateToken, handlers.SetBankAccount)
 
 	app.Listen(":8000")
 }

@@ -13,6 +13,7 @@ var (
 	ERROR_INVALID_EMAIL    = &fiber.Error{Code: 401, Message: "Error. Invalid email"}
 	ERROR_INVALID_PASSWORD = &fiber.Error{Code: 401, Message: "Error. Invalid password"}
 	ERROR_NOT_AUTHORIZED   = &fiber.Error{Code: 401, Message: "Error. Not authorized"}
+	ERROR_UPDATING_DATA    = &fiber.Error{Code: 400, Message: "Error updating data"}
 )
 
 func ResponseWhenError(ctx *fiber.Ctx, err error) error {
