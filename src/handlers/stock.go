@@ -19,7 +19,10 @@ func GetStocks(ctx *fiber.Ctx) error {
 }
 
 type UserInvestments struct {
-	Investments []models.InvestimentEvent `json:"investments"`
+	Investments       []models.InvestmentEvent `json:"investments"`
+	StockDistribution []models.Investment      `json:"stock_distribution"`
+	DividendYield     []models.InvestmentEvent `json:"dividend_yied"`
+	DidivendPaid      []models.InvestmentEvent `json:"dividend_paid"`
 }
 
 func GetUserInvestments(ctx *fiber.Ctx) error {
@@ -27,14 +30,20 @@ func GetUserInvestments(ctx *fiber.Ctx) error {
 	user = ctx.Locals("user").(*models.User)
 
 	database.BankDB.Preload("Investments").Find(&user)
+	database.BankDB.Preload("InvestmentEvents").Find(&user)
 	return ctx.JSON(
-		UserInvestments{Investments: user.InvestimentEvents},
+		UserInvestments{
+			Investments:       user.InvestmentEvents,
+			StockDistribution: user.Investments,
+			DividendYield:     []models.InvestmentEvent{},
+			DidivendPaid:      []models.InvestmentEvent{},
+		},
 	)
 }
 
 func SetInvestmentEvent(ctx *fiber.Ctx) error {
 	var user *models.User
-	var payload models.InvestimentEvent
+	var payload models.InvestmentEvent
 
 	err := json.Unmarshal(ctx.Body(), &payload)
 	if err != nil {
@@ -54,7 +63,7 @@ func SetInvestmentEvent(ctx *fiber.Ctx) error {
 
 func SetInvestment(ctx *fiber.Ctx) error {
 	var user *models.User
-	var payload models.Investiment
+	var payload models.Investment
 
 	err := json.Unmarshal(ctx.Body(), &payload)
 	if err != nil {

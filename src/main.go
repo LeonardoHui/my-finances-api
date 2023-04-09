@@ -46,8 +46,8 @@ func main() {
 	database.BankDB.AutoMigrate(models.BankAccount{})
 	database.BankDB.AutoMigrate(models.Statement{})
 	database.BankDB.AutoMigrate(models.Stock{})
-	database.BankDB.AutoMigrate(models.Investiment{})
-	database.BankDB.AutoMigrate(models.InvestimentEvent{})
+	database.BankDB.AutoMigrate(models.Investment{})
+	database.BankDB.AutoMigrate(models.InvestmentEvent{})
 
 	// For teste only
 	handlers.InternalCreateNewUser()

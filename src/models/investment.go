@@ -2,7 +2,7 @@ package models
 
 import "gorm.io/gorm"
 
-type Investiment struct {
+type Investment struct {
 	gorm.Model
 	UserID       uint
 	StockID      uint
@@ -11,7 +11,7 @@ type Investiment struct {
 	Total        float64
 }
 
-type InvestimentEvent struct {
+type InvestmentEvent struct {
 	gorm.Model
 	UserID      uint
 	Amount      int64
