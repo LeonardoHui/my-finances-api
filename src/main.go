@@ -69,6 +69,9 @@ func main() {
 	app.Get("/statements", handlers.AuthenticateToken, handlers.GetUserStatements)
 	app.Get("/investments", handlers.AuthenticateToken, handlers.GetUserInvestments)
 	app.Post("/bank/account", handlers.AuthenticateToken, handlers.SetBankAccount)
+	app.Post("/bank/events", handlers.AuthenticateToken, handlers.SetBankEvent)
+	app.Post("/stock", handlers.AuthenticateToken, handlers.SetInvestment)
+	app.Post("/stock/events", handlers.AuthenticateToken, handlers.SetInvestmentEvent)
 
 	app.Listen(":8000")
 }

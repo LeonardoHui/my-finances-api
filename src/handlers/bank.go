@@ -88,3 +88,23 @@ func SetBankAccount(ctx *fiber.Ctx) error {
 
 	return ctx.SendStatus(fiber.StatusOK)
 }
+
+func SetBankEvent(ctx *fiber.Ctx) error {
+	var user *models.User
+	var payload models.Statement
+
+	err := json.Unmarshal(ctx.Body(), &payload)
+	if err != nil {
+		return ERROR_INVALID_PAYLOAD
+	}
+
+	user = ctx.Locals("user").(*models.User)
+	payload.UserID = user.ID
+
+	if err := database.BankDB.Create(&payload).Error; err != nil {
+		log.Println("Fail creating statement event")
+		return ERROR_UPDATING_DATA
+	}
+
+	return ctx.SendStatus(fiber.StatusOK)
+}
