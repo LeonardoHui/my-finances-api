@@ -18,29 +18,6 @@ func GetStocks(ctx *fiber.Ctx) error {
 	return ctx.SendString(fmt.Sprintf("%v", stock))
 }
 
-type UserInvestments struct {
-	Investments       []models.InvestmentEvent `json:"investments"`
-	StockDistribution []models.Investment      `json:"stock_distribution"`
-	DividendYield     []models.InvestmentEvent `json:"dividend_yied"`
-	DidivendPaid      []models.InvestmentEvent `json:"dividend_paid"`
-}
-
-func GetUserInvestments(ctx *fiber.Ctx) error {
-	var user *models.User
-	user = ctx.Locals("user").(*models.User)
-
-	database.BankDB.Preload("Investments").Find(&user)
-	database.BankDB.Preload("InvestmentEvents").Find(&user)
-	return ctx.JSON(
-		UserInvestments{
-			Investments:       user.InvestmentEvents,
-			StockDistribution: user.Investments,
-			DividendYield:     []models.InvestmentEvent{},
-			DidivendPaid:      []models.InvestmentEvent{},
-		},
-	)
-}
-
 func SetInvestmentEvent(ctx *fiber.Ctx) error {
 	var user *models.User
 	var payload models.InvestmentEvent

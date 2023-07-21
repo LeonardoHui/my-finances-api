@@ -52,21 +52,3 @@ func CreatNewUserAndLogin(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusCreated).JSON(TokenResponse{Token: tokenString})
 }
-
-// For teste only
-func InternalCreateNewUser() {
-	user := models.User{
-		Name:     "tester one",
-		Username: "tester one",
-		Email:    "tester_one@mail.com",
-		Password: "1111",
-	}
-	if err := user.HashPassword(user.Password); err != nil {
-		log.Println("Error hashing password", err)
-
-	}
-	record := database.BankDB.Create(&user)
-	if record.Error != nil {
-		log.Println("Error saving DB", record.Error)
-	}
-}
