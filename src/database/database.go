@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"my-finances-api/src/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -37,4 +38,19 @@ func (db DbConfigs) Open() *gorm.DB {
 	}
 
 	return session
+}
+
+func Migrate() {
+
+	BankDB.AutoMigrate(models.User{})
+	BankDB.AutoMigrate(models.Bank{})
+	BankDB.AutoMigrate(models.BankAccount{})
+	BankDB.AutoMigrate(models.Statement{})
+	BankDB.AutoMigrate(models.Stock{})
+	BankDB.AutoMigrate(models.StockEvent{})
+	BankDB.AutoMigrate(models.Bond{})
+	BankDB.AutoMigrate(models.BondEvent{})
+	BankDB.AutoMigrate(models.IPCA{})
+	BankDB.AutoMigrate(models.SELIC{})
+
 }

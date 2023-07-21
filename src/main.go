@@ -2,29 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"my-finances-api/src/configs"
 	"my-finances-api/src/database"
-	"my-finances-api/src/handlers"
-	"my-finances-api/src/models"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"gopkg.in/dnaeon/go-vcr.v3/recorder"
+	"my-finances-api/src/server"
+	"my-finances-api/src/utils"
 )
-
-func mockrequest() *recorder.Recorder {
-	r, err := recorder.New("fixtures/integration")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if r.Mode() != recorder.ModeRecordOnce {
-		log.Fatal("Recorder should be in ModeRecordOnce")
-	}
-	return r
-}
 
 func main() {
 	fmt.Println("STARTING THE PROGRAM")
@@ -40,38 +23,13 @@ func main() {
 	}
 
 	database.BankDB = bankConfigDB.Open()
+	database.Migrate()
 
-	database.BankDB.AutoMigrate(models.User{})
-	database.BankDB.AutoMigrate(models.Bank{})
-	database.BankDB.AutoMigrate(models.BankAccount{})
-	database.BankDB.AutoMigrate(models.Statement{})
-	database.BankDB.AutoMigrate(models.Stock{})
-	database.BankDB.AutoMigrate(models.Investment{})
-	database.BankDB.AutoMigrate(models.InvestmentEvent{})
-
-	// For teste only
-	handlers.InternalCreateNewUser()
-
-	config := fiber.Config{
-		ErrorHandler: handlers.ResponseWhenError,
+	// For testing and development
+	if configs.Envs["ENV"] != "PROD" {
+		utils.InternalCreateNewUser()
+		utils.InternalLoadTables("./sql/")
 	}
 
-	app := fiber.New(config)
-
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000",
-	}))
-
-	app.Post("/register", handlers.CreatNewUserAndLogin)
-	app.Post("/login", handlers.GenerateToken)
-
-	// Authenticated endpoints
-	app.Get("/statements", handlers.AuthenticateToken, handlers.GetUserStatements)
-	app.Get("/investments", handlers.AuthenticateToken, handlers.GetUserInvestments)
-	app.Post("/bank/account", handlers.AuthenticateToken, handlers.SetBankAccount)
-	app.Post("/bank/events", handlers.AuthenticateToken, handlers.SetBankEvent)
-	app.Post("/stock", handlers.AuthenticateToken, handlers.SetInvestment)
-	app.Post("/stock/events", handlers.AuthenticateToken, handlers.SetInvestmentEvent)
-
-	app.Listen(":8000")
+	server.Run(":8000")
 }

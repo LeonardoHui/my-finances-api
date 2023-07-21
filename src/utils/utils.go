@@ -1,4 +1,4 @@
-package handlers
+package utils
 
 import (
 	"bufio"
@@ -24,16 +24,15 @@ func InternalCreateNewUser() {
 	}
 }
 
-func InternalLoadTables() {
-	dir := ".././src/internal/"
+func InternalLoadTables(dirPath string) {
 
-	files, err := os.ReadDir(dir)
+	files, err := os.ReadDir(dirPath)
 	if err != nil {
 		log.Println("Error reading internal dir. ", err)
 		return
 	}
 	for _, file := range files {
-		readFile, err := os.Open(dir + file.Name())
+		readFile, err := os.Open(dirPath + file.Name())
 		if err != nil {
 			log.Println("Error opening file. ", err)
 		}
