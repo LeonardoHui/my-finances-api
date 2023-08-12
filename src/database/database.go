@@ -6,6 +6,7 @@ import (
 	"my-finances-api/src/models"
 
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -40,17 +41,25 @@ func (db DbConfigs) Open() *gorm.DB {
 	return session
 }
 
-func Migrate() {
+func OpenLite(fileName string) *gorm.DB {
+	session, err := gorm.Open(sqlite.Open(fileName), &gorm.Config{})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return session
+}
 
+func Migrate() {
 	BankDB.AutoMigrate(models.User{})
 	BankDB.AutoMigrate(models.Bank{})
 	BankDB.AutoMigrate(models.BankAccount{})
 	BankDB.AutoMigrate(models.Statement{})
 	BankDB.AutoMigrate(models.Stock{})
 	BankDB.AutoMigrate(models.StockEvent{})
+	BankDB.AutoMigrate(models.StockHistory{})
 	BankDB.AutoMigrate(models.Bond{})
 	BankDB.AutoMigrate(models.BondEvent{})
+	BankDB.AutoMigrate(models.BondHistory{})
 	BankDB.AutoMigrate(models.IPCA{})
 	BankDB.AutoMigrate(models.SELIC{})
-
 }

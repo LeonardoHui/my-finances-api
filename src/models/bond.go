@@ -24,3 +24,13 @@ type BondEvent struct {
 	Rate       uint
 	Maturity   time.Time
 }
+
+type BondHistory struct {
+	gorm.Model
+	StockID uint
+	Price   uint //In Cents
+}
+
+func (BondHistory) TableName() string {
+	return "bond_history"
+}

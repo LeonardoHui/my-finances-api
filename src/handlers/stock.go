@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"my-finances-api/src/database"
@@ -10,13 +9,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 )
-
-func GetStocks(ctx *fiber.Ctx) error {
-	var stock models.Stock
-
-	database.BankDB.First(&stock)
-	return ctx.SendString(fmt.Sprintf("%v", stock))
-}
 
 func SetInvestmentEvent(ctx *fiber.Ctx) error {
 	var user *models.User
@@ -56,4 +48,9 @@ func SetInvestment(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.SendStatus(fiber.StatusOK)
+}
+
+func RequestLogger(ctx *fiber.Ctx) error {
+	log.Println(ctx.Path())
+	return ctx.Next()
 }

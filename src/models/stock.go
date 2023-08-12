@@ -20,3 +20,13 @@ type StockEvent struct {
 	NegociationFee  uint //In Cents
 	TotalPrice      uint //In Cents
 }
+
+type StockHistory struct {
+	gorm.Model
+	StockID uint
+	Price   uint //In Cents
+}
+
+func (StockHistory) TableName() string {
+	return "stock_history"
+}

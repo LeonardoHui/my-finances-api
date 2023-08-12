@@ -16,17 +16,21 @@ func Run(Port string) {
 		AllowOrigins: "http://localhost:3000",
 	}))
 
-	app.Post("/register", handlers.CreatNewUserAndLogin)
-	app.Post("/login", handlers.GenerateToken)
-	app.Get("/investments", handlers.GetUserInvestmentsEvolution)
-	app.Get("/simulation", handlers.GetInvestmentsEvolutionSimulation)
+	app.Post("/register", handlers.RequestLogger, handlers.CreatNewUserAndLogin)
+	app.Post("/login", handlers.RequestLogger, handlers.GenerateToken)
+	app.Get("/investments", handlers.RequestLogger, handlers.GetUserInvestmentsEvolution)
+	app.Get("/simulation", handlers.RequestLogger, handlers.GetInvestmentsEvolutionSimulation)
+	// Testing
+	app.Get("/distint", handlers.RequestLogger, handlers.GetStocks)
+	app.Get("/market", handlers.RequestLogger, handlers.GetMarketValueTestHandler)
+	app.Get("/timeline", handlers.RequestLogger, handlers.GetTimeLine)
 
 	// Authenticated endpoints
-	app.Get("/statements", handlers.AuthenticateToken, handlers.GetUserStatements)
-	app.Post("/bank/account", handlers.AuthenticateToken, handlers.SetBankAccount)
-	app.Post("/bank/events", handlers.AuthenticateToken, handlers.SetBankEvent)
-	app.Post("/stock", handlers.AuthenticateToken, handlers.SetInvestment)
-	app.Post("/stock/events", handlers.AuthenticateToken, handlers.SetInvestmentEvent)
+	app.Get("/statements", handlers.RequestLogger, handlers.AuthenticateToken, handlers.GetUserStatements)
+	app.Post("/bank/account", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetBankAccount)
+	app.Post("/bank/events", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetBankEvent)
+	app.Post("/stock", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetInvestment)
+	app.Post("/stock/events", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetInvestmentEvent)
 
 	app.Listen(Port)
 }

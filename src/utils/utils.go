@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-// For teste only
+// For test only
 func InternalCreateNewUser() {
 	user := models.User{
 		Name:     "test",
@@ -32,7 +32,7 @@ func InternalLoadTables(dirPath string) {
 		return
 	}
 	for _, file := range files {
-		readFile, err := os.Open(dirPath + file.Name())
+		readFile, err := os.Open(dirPath + "/" + file.Name())
 		if err != nil {
 			log.Println("Error opening file. ", err)
 		}
