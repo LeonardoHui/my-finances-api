@@ -49,8 +49,3 @@ func SetInvestment(ctx *fiber.Ctx) error {
 
 	return ctx.SendStatus(fiber.StatusOK)
 }
-
-func RequestLogger(ctx *fiber.Ctx) error {
-	log.Println(ctx.Path())
-	return ctx.Next()
-}

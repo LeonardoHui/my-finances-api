@@ -6,6 +6,7 @@ import (
 	"log"
 	"my-finances-api/src/database"
 	"my-finances-api/src/models"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -18,21 +19,70 @@ func GetBank(ctx *fiber.Ctx) error {
 	return ctx.SendString(fmt.Sprintf("%v", bank))
 }
 
-type UserStatements struct {
-	Statements []models.Statement   `json:"statements"`
-	Balance    []models.BankAccount `json:"balance"`
-}
-
 func GetUserStatements(ctx *fiber.Ctx) error {
+	type ApiStatement struct {
+		ID              uint      `json:"id"`
+		TransactionType string    `json:"transaction_type"`
+		Amount          uint      `json:"amount"`
+		Date            time.Time `json:"date"`
+	}
+
+	type ApiBankAccount struct {
+		ID     uint      `json:"id"`
+		Bank   string    `json:"bank"`
+		Amount uint      `json:"amount"`
+		Date   time.Time `json:"date"`
+	}
+
+	type ApiUserStatements struct {
+		Statements []ApiStatement   `json:"statements"`
+		Balance    []ApiBankAccount `json:"balance"`
+	}
+
 	var user *models.User
 	user = ctx.Locals("user").(*models.User)
 
 	database.BankDB.Preload("Statements").Find(&user)
 	database.BankDB.Preload("BankAccounts").Find(&user)
+
+	//Convert from DB to API response
+	var (
+		balances        = []ApiBankAccount{}
+		statements      = []ApiStatement{}
+		transactionType string
+		bankNameMap     = make(map[uint]string)
+	)
+	bankNameMap[1] = "BANK ONE"
+	bankNameMap[2] = "BANK TWO"
+	bankNameMap[3] = "BANK THREE"
+
+	for _, v := range user.Statements {
+		if v.Event == "BUY" {
+			transactionType = "DEBIT"
+		} else {
+			transactionType = "CREDIT"
+		}
+		statements = append(statements, ApiStatement{
+			ID:              v.ID,
+			TransactionType: transactionType,
+			Amount:          uint(v.Amount),
+			Date:            v.CreatedAt,
+		})
+	}
+
+	for _, v := range user.BankAccounts {
+		balances = append(balances, ApiBankAccount{
+			ID:     v.ID,
+			Bank:   bankNameMap[v.BankID],
+			Amount: uint(v.Amount),
+			Date:   v.UpdatedAt,
+		})
+	}
+
 	return ctx.JSON(
-		UserStatements{
-			Statements: user.Statements,
-			Balance:    user.BankAccounts,
+		ApiUserStatements{
+			Statements: statements,
+			Balance:    balances,
 		},
 	)
 }

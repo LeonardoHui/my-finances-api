@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"my-finances-api/src/database"
@@ -17,9 +18,14 @@ import (
 	"gorm.io/gorm"
 )
 
+type JWT struct {
+	Token string `json:"token"`
+}
+
 var (
 	port = ":8000"
 	host = "http://127.0.0.1" + port
+	jwt  JWT
 )
 
 func TestMain(m *testing.M) {
@@ -37,19 +43,32 @@ func TestMain(m *testing.M) {
 	utils.InternalLoadTables("./fixtures")
 
 	go server.Run(port)
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 	exitVal := m.Run()
 	log.Printf("Ending tests execution")
 	os.Exit(exitVal)
 }
 
-func Test_integration(t *testing.T) {
+func Test_Login(t *testing.T) {
 
 	url := host + "/login"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(`{"email": "test@email.com", "password":"test"}`)))
 	req.Header.Set("Content-Type", "application/json")
 	resp, _ := http.DefaultClient.Do(req)
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	t.Log(string(respBody))
+	json.Unmarshal(respBody, &jwt)
+	assert.NotEmpty(t, jwt.Token)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func Test_Statements(t *testing.T) {
+
+	url := host + "/statements"
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", jwt.Token)
+	resp, _ := http.DefaultClient.Do(req)
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	assert.NotEmpty(t, respBody)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

@@ -1,11 +1,17 @@
 package server
 
 import (
+	"log"
 	"my-finances-api/src/handlers"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
+
+func RequestLogger(ctx *fiber.Ctx) error {
+	log.Println(ctx.Path())
+	return ctx.Next()
+}
 
 func Run(Port string) {
 
@@ -16,21 +22,16 @@ func Run(Port string) {
 		AllowOrigins: "http://localhost:3000",
 	}))
 
-	app.Post("/register", handlers.RequestLogger, handlers.CreatNewUserAndLogin)
-	app.Post("/login", handlers.RequestLogger, handlers.GenerateToken)
-	app.Get("/investments", handlers.RequestLogger, handlers.GetUserInvestmentsEvolution)
-	app.Get("/simulation", handlers.RequestLogger, handlers.GetInvestmentsEvolutionSimulation)
-	// Testing
-	app.Get("/distint", handlers.RequestLogger, handlers.GetStocks)
-	app.Get("/market", handlers.RequestLogger, handlers.GetMarketValueTestHandler)
-	app.Get("/timeline", handlers.RequestLogger, handlers.GetTimeLine)
-
+	app.Post("/register", RequestLogger, handlers.CreatNewUserAndLogin)
+	app.Post("/login", RequestLogger, handlers.GenerateToken)
+	app.Get("/investments", RequestLogger, handlers.GetUserInvestmentsEvolution)
+	app.Get("/simulation", RequestLogger, handlers.GetInvestmentsEvolutionSimulation)
 	// Authenticated endpoints
-	app.Get("/statements", handlers.RequestLogger, handlers.AuthenticateToken, handlers.GetUserStatements)
-	app.Post("/bank/account", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetBankAccount)
-	app.Post("/bank/events", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetBankEvent)
-	app.Post("/stock", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetInvestment)
-	app.Post("/stock/events", handlers.RequestLogger, handlers.AuthenticateToken, handlers.SetInvestmentEvent)
+	app.Get("/statements", RequestLogger, handlers.AuthenticateToken, handlers.GetUserStatements)
+	app.Post("/bank/account", RequestLogger, handlers.AuthenticateToken, handlers.SetBankAccount)
+	app.Post("/bank/events", RequestLogger, handlers.AuthenticateToken, handlers.SetBankEvent)
+	app.Post("/stock", RequestLogger, handlers.AuthenticateToken, handlers.SetInvestment)
+	app.Post("/stock/events", RequestLogger, handlers.AuthenticateToken, handlers.SetInvestmentEvent)
 
 	app.Listen(Port)
 }
