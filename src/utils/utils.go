@@ -6,6 +6,7 @@ import (
 	"my-finances-api/src/database"
 	"my-finances-api/src/models"
 	"os"
+	"time"
 )
 
 // For test only
@@ -44,4 +45,22 @@ func InternalLoadTables(dirPath string) {
 		}
 		readFile.Close()
 	}
+}
+
+type Timeline struct {
+	Date  time.Time
+	Value uint
+}
+
+func MonthsArray(startDate time.Time) (timeline []Timeline) {
+	y, m, _ := time.Now().Date()
+	currentDate := time.Date(y, m, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -1)
+	for currentDate.After(startDate) {
+		year, month, _ := startDate.Date()
+		lastDayOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 1, -1)
+		timeline = append(timeline, Timeline{Date: lastDayOfMonth})
+
+		startDate = lastDayOfMonth.AddDate(0, 0, 1)
+	}
+	return
 }

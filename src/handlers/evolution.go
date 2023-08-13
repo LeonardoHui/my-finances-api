@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"my-finances-api/src/database"
 	"my-finances-api/src/models"
+	"my-finances-api/src/utils"
 	"sort"
 	"time"
 
@@ -90,14 +91,9 @@ func GetMarketValueTestHandler(ctx *fiber.Ctx) error {
 	return ctx.SendString(fmt.Sprintf("%+v", history))
 }
 
-type Timeline struct {
-	Date  time.Time
-	Value uint
-}
+func getOrverallMarketValue() []utils.Timeline {
 
-func getOrverallMarketValue() []Timeline {
-
-	var timeline []Timeline
+	var timeline []utils.Timeline
 
 	var user_id = 1
 	var firstEvent models.StockEvent
@@ -118,15 +114,7 @@ func getOrverallMarketValue() []Timeline {
 	//Create an array of months starting fron the first users event
 	database.BankDB.Order("Created_at").First(&firstEvent, "user_id = ?", user_id)
 	startDate := firstEvent.CreatedAt
-	y, m, _ := time.Now().Date()
-	currentDate := time.Date(y, m, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -1)
-	for currentDate.After(startDate) {
-		year, month, _ := startDate.Date()
-		lastDayOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 1, -1)
-		timeline = append(timeline, Timeline{Date: lastDayOfMonth})
-
-		startDate = lastDayOfMonth.AddDate(0, 0, 1)
-	}
+	timeline = utils.MonthsArray(startDate)
 
 	for i, time := range timeline {
 		for _, stock := range stocksHistoryArray {

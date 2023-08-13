@@ -10,18 +10,64 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type GenericLabelValue struct {
+	Label string `json:"label"`
+	Value uint   `json:"value"`
+}
+
 type UserInvestments struct {
-	Investments []models.Investment `json:"investments"`
+	Investments   []GenericMonetaryItem `json:"investments"`
+	DividendYield []GenericLabelValue   `json:"dividend_yied"`
+	DividendPaid  []GenericLabelValue   `json:"dividend_paid"`
 }
 
 func GetUserInvestments(ctx *fiber.Ctx) error {
-	var user *models.User
+	var (
+		user        *models.User
+		stockEvents []models.StockEvent
+
+		investments    []GenericMonetaryItem
+		dividendPaid   []GenericLabelValue
+		dividendYield  []GenericLabelValue
+		investmentName = make(map[uint]string)
+	)
+	investmentName[1] = "STOCK A"
+	investmentName[2] = "STOCK B"
+	investmentName[3] = "STOCK C"
 	user = ctx.Locals("user").(*models.User)
 
-	database.BankDB.Preload("Investments").Find(&user)
-	database.BankDB.Preload("InvestmentEvents").Find(&user)
+	database.BankDB.Order("created_at").Find(&stockEvents, "user_id = ?", user.ID)
+
+	for _, v := range stockEvents {
+		// TODO - Sum each stock
+		investments = append(investments, GenericMonetaryItem{
+			ID:          v.ID,
+			Description: investmentName[v.StockID],
+			Amount:      v.TotalPrice,
+			Date:        v.CreatedAt,
+		})
+	}
+
+	for _, v := range stockEvents {
+		if v.Event == "DIVIDEND" {
+			dividendPaid = append(dividendPaid, GenericLabelValue{
+				Label: investmentName[v.StockID],
+				Value: v.TotalPrice,
+			})
+			// TODO - Calculate Yield
+			dividendYield = append(dividendYield, GenericLabelValue{
+				Label: investmentName[v.StockID],
+				Value: v.TotalPrice,
+			})
+		}
+	}
+
 	return ctx.JSON(
-		UserInvestments{},
+		UserInvestments{
+			Investments:   investments,
+			DividendYield: dividendYield,
+			DividendPaid:  dividendPaid,
+		},
 	)
 }
 
@@ -30,27 +76,31 @@ func GetUserInvestmentsEvolution(ctx *fiber.Ctx) error {
 	// Pile up the value of each month with the previous one
 
 	var (
-		// user                = ctx.Locals("user").(*models.User)
+		user                = ctx.Locals("user").(*models.User)
 		stockEvents         []models.StockEvent
 		bondsEvents         []models.BondEvent
 		stocksAsInvestments []models.Investment
+		response            []GenericLabelValue
 	)
 
-	database.BankDB.Order("created_at").Find(&stockEvents) //, "user_id = ?", user.ID)
-	database.BankDB.Order("created_at").Find(&bondsEvents) //, "user_id = ?", user.ID)
+	database.BankDB.Order("created_at").Find(&stockEvents, "user_id = ?", user.ID)
+	database.BankDB.Order("created_at").Find(&bondsEvents, "user_id = ?", user.ID)
 
 	for _, stk := range stockEvents {
 		stocksAsInvestments = append(stocksAsInvestments, models.StockToInvestment(stk))
+	}
+	for _, bds := range bondsEvents {
+		stocksAsInvestments = append(stocksAsInvestments, models.BondToInvestment(bds))
 	}
 
 	monthly_investments := groupMonthly(stocksAsInvestments)
 	cumulative_monthly_investments := cumulativeMonthly(monthly_investments)
 
-	return ctx.JSON(
-		UserInvestments{
-			Investments: cumulative_monthly_investments,
-		},
-	)
+	for _, v := range cumulative_monthly_investments {
+		response = append(response, GenericLabelValue{Label: v.CreatedAt.Format("Jan-06"), Value: uint(v.TotalPrice)})
+	}
+
+	return ctx.JSON(response)
 }
 
 func groupMonthly(invts []models.Investment) []models.Investment {
@@ -92,6 +142,7 @@ func cumulativeMonthly(monthly_contribution []models.Investment) (cumulative_mon
 
 	cumulative_monthly = make([]models.Investment, len(monthly_contribution))
 	cumulative_monthly[0] = monthly_contribution[0]
+
 	for i := 1; i < len(monthly_contribution); i++ {
 
 		qty := monthly_contribution[i].Quantity + cumulative_monthly[i-1].Quantity
@@ -114,12 +165,12 @@ func GetInvestmentsEvolutionSimulation(ctx *fiber.Ctx) error {
 	// Simulate the cumulative previous month value + index of the current month
 
 	var (
-		// user                = ctx.Locals("user").(*models.User)
+		user                    = ctx.Locals("user").(*models.User)
 		statements              []models.Statement
 		statementsAsInvestments []models.Investment
 	)
 
-	database.BankDB.Order("created_at").Find(&statements, "event = 'TRANSFER'") //, "user_id = ?", user.ID)
+	database.BankDB.Order("created_at").Find(&statements, "event = 'TRANSFER'", "user_id = ?", user.ID)
 	// TODO make a return when statements is empty
 
 	for _, stmt := range statements {
@@ -127,14 +178,35 @@ func GetInvestmentsEvolutionSimulation(ctx *fiber.Ctx) error {
 	}
 
 	monthly_investments := groupMonthly(statementsAsInvestments)
+	cumulative_monthly_investments := cumulativeMonthly(monthly_investments)
 	simulatedMonthlyEv := simulateEvolution("ipca", monthly_investments)
 
-	return ctx.JSON(
-		UserInvestments{
-			Investments: simulatedMonthlyEv,
-		},
-	)
+	log.Printf(">>>> simulated monthly %+v", simulatedMonthlyEv)
 
+	type MonthlyValues struct {
+		Date  string `json:"date"`
+		Value []uint `json:"value"`
+	}
+	type Response struct {
+		Lines  []string        `json:"lines"`
+		Values []MonthlyValues `json:"values"`
+	}
+
+	var response Response
+	var values []MonthlyValues
+	var deposit uint
+	response.Lines = append(response.Lines, "ipca", "deposits")
+	for i, v := range simulatedMonthlyEv {
+		values = append(values, MonthlyValues{Date: v.CreatedAt.Format("Jan-06")})
+		if i < len(cumulative_monthly_investments) {
+			deposit = uint(cumulative_monthly_investments[i].TotalPrice)
+		} else {
+			deposit = uint(v.TotalPrice * 0.9)
+		}
+		values[len(values)-1].Value = append(values[len(values)-1].Value, uint(v.TotalPrice), deposit)
+	}
+	response.Values = values
+	return ctx.JSON(response)
 }
 
 func simulateEvolution(indexer string, monthly_contribution []models.Investment) (simulatedMonthlyEv []models.Investment) {
@@ -151,10 +223,11 @@ func simulateEvolution(indexer string, monthly_contribution []models.Investment)
 	database.BankDB.Order("date").Find(&ipcaHistory, "date > ?", startingDate)
 	database.BankDB.Order("date").Find(&selicHistory, "date > ?", startingDate)
 
+	log.Printf("selic history >>>> %+v\n", selicHistory)
+
 	montly_contribution_map := make(map[time.Time]models.Investment)
 	for _, invt := range monthly_contribution {
 		montly_contribution_map[invt.CreatedAt] = invt
-		log.Printf("Statements >>>> %+v\n", invt)
 	}
 
 	// Get a month of investment multiple by the indexer on the imediatly following month, store the result

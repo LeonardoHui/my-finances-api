@@ -19,25 +19,19 @@ func GetBank(ctx *fiber.Ctx) error {
 	return ctx.SendString(fmt.Sprintf("%v", bank))
 }
 
+type GenericMonetaryItem struct {
+	ID          uint      `json:"id"`
+	Description string    `json:"description"`
+	Amount      uint      `json:"amount"`
+	Date        time.Time `json:"date"`
+}
+
+type ApiUserStatements struct {
+	Statements []GenericMonetaryItem `json:"statements"`
+	Balance    []GenericMonetaryItem `json:"balance"`
+}
+
 func GetUserStatements(ctx *fiber.Ctx) error {
-	type ApiStatement struct {
-		ID              uint      `json:"id"`
-		TransactionType string    `json:"transaction_type"`
-		Amount          uint      `json:"amount"`
-		Date            time.Time `json:"date"`
-	}
-
-	type ApiBankAccount struct {
-		ID     uint      `json:"id"`
-		Bank   string    `json:"bank"`
-		Amount uint      `json:"amount"`
-		Date   time.Time `json:"date"`
-	}
-
-	type ApiUserStatements struct {
-		Statements []ApiStatement   `json:"statements"`
-		Balance    []ApiBankAccount `json:"balance"`
-	}
 
 	var user *models.User
 	user = ctx.Locals("user").(*models.User)
@@ -47,8 +41,8 @@ func GetUserStatements(ctx *fiber.Ctx) error {
 
 	//Convert from DB to API response
 	var (
-		balances        = []ApiBankAccount{}
-		statements      = []ApiStatement{}
+		balances        = []GenericMonetaryItem{}
+		statements      = []GenericMonetaryItem{}
 		transactionType string
 		bankNameMap     = make(map[uint]string)
 	)
@@ -62,20 +56,20 @@ func GetUserStatements(ctx *fiber.Ctx) error {
 		} else {
 			transactionType = "CREDIT"
 		}
-		statements = append(statements, ApiStatement{
-			ID:              v.ID,
-			TransactionType: transactionType,
-			Amount:          uint(v.Amount),
-			Date:            v.CreatedAt,
+		statements = append(statements, GenericMonetaryItem{
+			ID:          v.ID,
+			Description: transactionType,
+			Amount:      uint(v.Amount),
+			Date:        v.CreatedAt,
 		})
 	}
 
 	for _, v := range user.BankAccounts {
-		balances = append(balances, ApiBankAccount{
-			ID:     v.ID,
-			Bank:   bankNameMap[v.BankID],
-			Amount: uint(v.Amount),
-			Date:   v.UpdatedAt,
+		balances = append(balances, GenericMonetaryItem{
+			ID:          v.ID,
+			Description: bankNameMap[v.BankID],
+			Amount:      uint(v.Amount),
+			Date:        v.UpdatedAt,
 		})
 	}
 

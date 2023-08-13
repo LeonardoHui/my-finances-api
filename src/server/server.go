@@ -24,10 +24,13 @@ func Run(Port string) {
 
 	app.Post("/register", RequestLogger, handlers.CreatNewUserAndLogin)
 	app.Post("/login", RequestLogger, handlers.GenerateToken)
-	app.Get("/investments", RequestLogger, handlers.GetUserInvestmentsEvolution)
-	app.Get("/simulation", RequestLogger, handlers.GetInvestmentsEvolutionSimulation)
+
 	// Authenticated endpoints
 	app.Get("/statements", RequestLogger, handlers.AuthenticateToken, handlers.GetUserStatements)
+	app.Get("/investments", RequestLogger, handlers.AuthenticateToken, handlers.GetUserInvestments)
+	app.Get("/evolution", RequestLogger, handlers.AuthenticateToken, handlers.GetUserInvestmentsEvolution)
+	app.Get("/simulation", RequestLogger, handlers.AuthenticateToken, handlers.GetInvestmentsEvolutionSimulation)
+
 	app.Post("/bank/account", RequestLogger, handlers.AuthenticateToken, handlers.SetBankAccount)
 	app.Post("/bank/events", RequestLogger, handlers.AuthenticateToken, handlers.SetBankEvent)
 	app.Post("/stock", RequestLogger, handlers.AuthenticateToken, handlers.SetInvestment)

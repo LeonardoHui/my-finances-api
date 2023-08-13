@@ -1,0 +1,46 @@
+INSERT INTO selic (date, rate) VALUES ('2020-01-31T00:00:00Z',0.38);
+INSERT INTO selic (date, rate) VALUES ('2020-02-29T00:00:00Z',0.29);
+INSERT INTO selic (date, rate) VALUES ('2020-03-31T00:00:00Z',0.34);
+INSERT INTO selic (date, rate) VALUES ('2020-04-30T00:00:00Z',0.28);
+INSERT INTO selic (date, rate) VALUES ('2020-05-31T00:00:00Z',0.24);
+INSERT INTO selic (date, rate) VALUES ('2020-06-30T00:00:00Z',0.21);
+INSERT INTO selic (date, rate) VALUES ('2020-07-31T00:00:00Z',0.19);
+INSERT INTO selic (date, rate) VALUES ('2020-08-31T00:00:00Z',0.16);
+INSERT INTO selic (date, rate) VALUES ('2020-09-30T00:00:00Z',0.16);
+INSERT INTO selic (date, rate) VALUES ('2020-10-31T00:00:00Z',0.16);
+INSERT INTO selic (date, rate) VALUES ('2020-11-30T00:00:00Z',0.15);
+INSERT INTO selic (date, rate) VALUES ('2020-12-31T00:00:00Z',0.16);
+
+INSERT INTO selic (date, rate) VALUES ('2021-01-31T00:00:00Z',0.15);
+INSERT INTO selic (date, rate) VALUES ('2021-02-28T00:00:00Z',0.13);
+INSERT INTO selic (date, rate) VALUES ('2021-03-31T00:00:00Z',0.20);
+INSERT INTO selic (date, rate) VALUES ('2021-04-30T00:00:00Z',0.21);
+INSERT INTO selic (date, rate) VALUES ('2021-05-31T00:00:00Z',0.27);
+INSERT INTO selic (date, rate) VALUES ('2021-06-30T00:00:00Z',0.31);
+INSERT INTO selic (date, rate) VALUES ('2021-07-31T00:00:00Z',0.36);
+INSERT INTO selic (date, rate) VALUES ('2021-08-31T00:00:00Z',0.43);
+INSERT INTO selic (date, rate) VALUES ('2021-09-30T00:00:00Z',0.44);
+INSERT INTO selic (date, rate) VALUES ('2021-10-31T00:00:00Z',0.49);
+INSERT INTO selic (date, rate) VALUES ('2021-11-30T00:00:00Z',0.59);
+INSERT INTO selic (date, rate) VALUES ('2021-12-31T00:00:00Z',0.77);
+
+INSERT INTO selic (date, rate) VALUES ('2022-01-31T00:00:00Z',0.73);
+INSERT INTO selic (date, rate) VALUES ('2022-02-28T00:00:00Z',0.76);
+INSERT INTO selic (date, rate) VALUES ('2022-03-31T00:00:00Z',0.93);
+INSERT INTO selic (date, rate) VALUES ('2022-04-30T00:00:00Z',0.83);
+INSERT INTO selic (date, rate) VALUES ('2022-05-31T00:00:00Z',1.03);
+INSERT INTO selic (date, rate) VALUES ('2022-06-30T00:00:00Z',1.02);
+INSERT INTO selic (date, rate) VALUES ('2022-07-31T00:00:00Z',1.03);
+INSERT INTO selic (date, rate) VALUES ('2022-08-31T00:00:00Z',1.17);
+INSERT INTO selic (date, rate) VALUES ('2022-09-30T00:00:00Z',1.07);
+INSERT INTO selic (date, rate) VALUES ('2022-10-31T00:00:00Z',1.02);
+INSERT INTO selic (date, rate) VALUES ('2022-11-30T00:00:00Z',1.02);
+INSERT INTO selic (date, rate) VALUES ('2022-12-31T00:00:00Z',1.12);
+
+INSERT INTO selic (date, rate) VALUES ('2023-01-31T00:00:00Z',1.12);
+INSERT INTO selic (date, rate) VALUES ('2023-02-28T00:00:00Z',0.92);
+INSERT INTO selic (date, rate) VALUES ('2023-03-31T00:00:00Z',1.17);
+INSERT INTO selic (date, rate) VALUES ('2023-04-30T00:00:00Z',0.92);
+INSERT INTO selic (date, rate) VALUES ('2023-05-31T00:00:00Z',1.12);
+INSERT INTO selic (date, rate) VALUES ('2023-06-30T00:00:00Z',1.07);
+INSERT INTO selic (date, rate) VALUES ('2023-07-31T00:00:00Z',1.07);
