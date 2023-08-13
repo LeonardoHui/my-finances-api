@@ -6,7 +6,6 @@ import (
 	"log"
 	"my-finances-api/src/database"
 	"my-finances-api/src/models"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -19,18 +18,6 @@ func GetBank(ctx *fiber.Ctx) error {
 	return ctx.SendString(fmt.Sprintf("%v", bank))
 }
 
-type GenericMonetaryItem struct {
-	ID          uint      `json:"id"`
-	Description string    `json:"description"`
-	Amount      uint      `json:"amount"`
-	Date        time.Time `json:"date"`
-}
-
-type ApiUserStatements struct {
-	Statements []GenericMonetaryItem `json:"statements"`
-	Balance    []GenericMonetaryItem `json:"balance"`
-}
-
 func GetUserStatements(ctx *fiber.Ctx) error {
 
 	var user *models.User
@@ -41,8 +28,8 @@ func GetUserStatements(ctx *fiber.Ctx) error {
 
 	//Convert from DB to API response
 	var (
-		balances        = []GenericMonetaryItem{}
-		statements      = []GenericMonetaryItem{}
+		balances        = []models.GenericMonetaryItem{}
+		statements      = []models.GenericMonetaryItem{}
 		transactionType string
 		bankNameMap     = make(map[uint]string)
 	)
@@ -56,7 +43,7 @@ func GetUserStatements(ctx *fiber.Ctx) error {
 		} else {
 			transactionType = "CREDIT"
 		}
-		statements = append(statements, GenericMonetaryItem{
+		statements = append(statements, models.GenericMonetaryItem{
 			ID:          v.ID,
 			Description: transactionType,
 			Amount:      uint(v.Amount),
@@ -65,7 +52,7 @@ func GetUserStatements(ctx *fiber.Ctx) error {
 	}
 
 	for _, v := range user.BankAccounts {
-		balances = append(balances, GenericMonetaryItem{
+		balances = append(balances, models.GenericMonetaryItem{
 			ID:          v.ID,
 			Description: bankNameMap[v.BankID],
 			Amount:      uint(v.Amount),
@@ -74,7 +61,7 @@ func GetUserStatements(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(
-		ApiUserStatements{
+		models.UserStatements{
 			Statements: statements,
 			Balance:    balances,
 		},
