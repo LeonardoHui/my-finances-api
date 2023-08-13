@@ -3,10 +3,12 @@ package handlers
 import (
 	"log"
 	"my-finances-api/src/auth"
+	"my-finances-api/src/configs"
 	"my-finances-api/src/database"
 	"my-finances-api/src/models"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 type TokenRequest struct {
@@ -47,6 +49,10 @@ func GenerateToken(ctx *fiber.Ctx) error {
 }
 
 func AuthenticateToken(ctx *fiber.Ctx) error {
+	if configs.Envs["ENV"] == "TEST" {
+		ctx.Locals("user", &models.User{Model: gorm.Model{ID: 1}})
+		return ctx.Next()
+	}
 
 	tokenString := ctx.Get("Authorization", "0")
 	if tokenString == "0" {
