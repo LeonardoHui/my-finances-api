@@ -128,7 +128,6 @@ func Test_Simulation_Endpoint_Response_Shall_Not_Be_Empty_With_StatusOK(t *testi
 		t.Log("Unable to unmarshal response body")
 		t.Fail()
 	}
-	t.Logf("%+v", responseFormat)
 	assert.NotEmpty(t, responseFormat, "Response body was empty")
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

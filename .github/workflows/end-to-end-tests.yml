@@ -1,4 +1,4 @@
-name: Test
+name: End-To-End Tests
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
         required: true
 
 jobs:
-  Test:
+  End-To-End-Tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,13 +25,15 @@ jobs:
 
       - name: Generate .env file
         env:
+          ENV: PROD
           DB_URL: localhost
           DB_PORT: 5432
           DB_USER: postgres
           DB_PWD: root
           DB_NAME: bank
         run: |
-          echo "BANK_DB_URL=${DB_URL}" > .env.test
+          echo "ENV=${ENV}" > .env.test
+          echo "BANK_DB_URL=${DB_URL}" >> .env.test
           echo "BANK_DB_PORT=${DB_PORT}" >> .env.test
           echo "BANK_DB_USER=${DB_USER}" >> .env.test
           echo "BANK_DB_PWD=${DB_PWD}" >> .env.test
