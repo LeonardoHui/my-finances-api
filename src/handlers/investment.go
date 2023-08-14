@@ -81,10 +81,11 @@ func GetUserInvestmentsEvolution(ctx *fiber.Ctx) error {
 		stocksAsInvestments = append(stocksAsInvestments, models.BondToInvestment(bds))
 	}
 
-	monthly_investments := groupMonthly(stocksAsInvestments)
-	cumulative_monthly_investments := cumulativeMonthly(monthly_investments)
+	monthlyInvestments := groupMonthly(stocksAsInvestments)
+	cumulativeMonthlyInvestments := cumulativeMonthly(monthlyInvestments)
+	evolution := fillDateGapsForEvolution(cumulativeMonthlyInvestments)
 
-	for _, v := range cumulative_monthly_investments {
+	for _, v := range evolution {
 		response = append(response, models.GenericLabelValue{Label: v.CreatedAt.Format("Jan-06"), Value: uint(v.TotalPrice)})
 	}
 
@@ -147,6 +148,50 @@ func cumulativeMonthly(monthly_contribution []models.Investment) (cumulative_mon
 	return
 }
 
+func fillDateGapsForEvolution(data []models.Investment) []models.Investment {
+	if len(data) <= 1 {
+		return data
+	}
+
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].CreatedAt.Before(data[j].CreatedAt)
+	})
+
+	y, m, _ := time.Now().Date()
+	currentDate := time.Date(y, m, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 1, -1)
+	data = append(data, models.Investment{CreatedAt: currentDate})
+	var missingData []models.Investment
+
+	for i := 0; i < len(data)-1; i++ {
+		y0, m0, _ := data[i].CreatedAt.Date()
+		date0 := time.Date(y0, m0, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 1, -1)
+		y1, m1, _ := data[i+1].CreatedAt.Date()
+		date1 := time.Date(y1, m1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -1)
+
+		for date1.After(date0) {
+			y0, m0, _ := date0.Date()
+			date0 = time.Date(y0, m0, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 2, -1)
+			missingData = append(missingData, models.Investment{
+				UserID:       data[i].UserID,
+				StockID:      data[i].StockID,
+				Quantity:     data[i].Quantity,
+				AveragePrice: data[i].AveragePrice,
+				TotalPrice:   data[i].TotalPrice,
+				CreatedAt:    date0,
+			})
+		}
+	}
+
+	data = data[:len(data)-1]
+	data = append(data, missingData...)
+
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].CreatedAt.Before(data[j].CreatedAt)
+	})
+
+	return data
+}
+
 // Simulations
 func GetInvestmentsEvolutionSimulation(ctx *fiber.Ctx) error {
 	// For the selected index
@@ -165,22 +210,17 @@ func GetInvestmentsEvolutionSimulation(ctx *fiber.Ctx) error {
 		statementsAsInvestments = append(statementsAsInvestments, models.StatementToInvestment(stmt))
 	}
 
-	monthly_investments := groupMonthly(statementsAsInvestments)
-	cumulative_monthly_investments := cumulativeMonthly(monthly_investments)
-	simulatedMonthlyEv := simulateEvolution("ipca", monthly_investments)
+	monthlyInvestments := groupMonthly(statementsAsInvestments)
+	groupedInvestmentsByMonth := cumulativeMonthly(monthlyInvestments)
+	cumulativeMonthlyInvestments := fillDateGapsForEvolution(groupedInvestmentsByMonth)
+	simulatedMonthlyEv := simulateEvolution("ipca", monthlyInvestments)
 
 	var response models.Simulation
 	var values []models.MonthlyValues
-	var deposit uint
 	response.Lines = append(response.Lines, "ipca", "deposits")
 	for i, v := range simulatedMonthlyEv {
 		values = append(values, models.MonthlyValues{Date: v.CreatedAt.Format("Jan-06")})
-		if i < len(cumulative_monthly_investments) {
-			deposit = uint(cumulative_monthly_investments[i].TotalPrice)
-		} else {
-			deposit = uint(v.TotalPrice * 0.9)
-		}
-		values[len(values)-1].Value = append(values[len(values)-1].Value, uint(v.TotalPrice), deposit)
+		values[len(values)-1].Value = append(values[len(values)-1].Value, uint(v.TotalPrice), uint(cumulativeMonthlyInvestments[i].TotalPrice))
 	}
 	response.Values = values
 	return ctx.JSON(response)
